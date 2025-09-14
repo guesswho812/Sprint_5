@@ -1,29 +1,23 @@
-﻿# Игнорируем всю папку виртуального окружения
+﻿# Virtual environment
 venv/
 
-# Файлы кэша Python
+# Python cache
 __pycache__/
-*.py[cod]
-*.class
+*.pyc
+*.pyo
+*.pyd
 
-# Логи и результаты тестов 
-logs/
-*.log
+# pytest cache
 .pytest_cache/
-allure-report/
-allure-results/
 
-# Файлы IDE 
-.idea/
+# IDE
 .vscode/
+.idea/
 
-# Секретные данные (пароли, ключи API)
-.env
-secrets.py
-
-# Временные файлы ОС
+# OS
 .DS_Store
 Thumbs.db
 
-# Игнорируем сами драйверы браузеров
-*.exe
+# Logs
+*.log
+logs/
