@@ -1,8 +1,9 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import pytest
 
-def test_return_to_constructor_from_profile():
+def test_return_to_constructor_from_profile(driver):
     """Тест проверяет переход из личного кабинета в конструктор через кнопку 'Конструктор'.
     
     Шаги:
@@ -13,35 +14,58 @@ def test_return_to_constructor_from_profile():
     Ожидаемый результат:
     - URL главной страницы ('https://stellarburgers.nomoreparties.site/')
     """
-    driver = webdriver.Chrome()
-    
     try:
-        # Логинимся и переходим в ЛК
+        # Логинимся
         driver.get("https://stellarburgers.nomoreparties.site/login")
-        time.sleep(2)
+        
+        # Ожидаем появление полей ввода
+        WebDriverWait(driver, 10).until(
+            EC.visibility_of_all_elements_located((By.TAG_NAME, "input"))
+        )
         
         all_inputs = driver.find_elements(By.TAG_NAME, "input")
         all_inputs[0].send_keys("test_killa@mail.ru")
         all_inputs[1].send_keys("qwerty123")
-        driver.find_element(By.XPATH, "//button[text()='Войти']").click()
-        time.sleep(3)
+        
+        # Кликаем кнопку входа
+        login_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[text()='Войти']"))
+        )
+        login_button.click()
+        
+        # Ожидаем завершение авторизации
+        WebDriverWait(driver, 10).until(
+            EC.url_to_be("https://stellarburgers.nomoreparties.site/")
+        )
         
         # Переходим в личный кабинет
-        driver.find_element(By.XPATH, "//p[text()='Личный Кабинет']").click()
-        time.sleep(2)
+        profile_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//p[text()='Личный Кабинет']"))
+        )
+        profile_button.click()
+        
+        # Ожидаем загрузки личного кабинета
+        WebDriverWait(driver, 10).until(
+            EC.url_contains("/account/profile")
+        )
         
         # Возвращаемся в конструктор
-        constructor_button = driver.find_element(By.XPATH, "//p[text()='Конструктор']")
+        constructor_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//p[text()='Конструктор']"))
+        )
         constructor_button.click()
-        time.sleep(2)
         
         # Проверяем возврат на главную
-        assert driver.current_url == "https://stellarburgers.nomoreparties.site/"
+        WebDriverWait(driver, 10).until(
+            EC.url_to_be("https://stellarburgers.nomoreparties.site/")
+        )
         
+        assert driver.current_url == "https://stellarburgers.nomoreparties.site/"
         print("Тест пройден: переход из ЛК в конструктор через кнопку работает")
         
-    finally:
-        driver.quit()
+    except Exception as e:
+        driver.save_screenshot("constructor_return_error.png")
+        raise e
 
-if __name__ == "__main__":
-    test_return_to_constructor_from_profile()
+# Команда для запуска теста:
+# python -m pytest tests/test_return_to_constructor.py::test_return_to_constructor_from_profile -v

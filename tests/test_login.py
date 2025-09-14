@@ -1,8 +1,9 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import pytest
 
-def test_login_from_main_page():
+def test_login_from_main_page(driver):
     """Тест проверяет вход через кнопку 'Войти в аккаунт' на главной странице.
     
     Шаги:
@@ -13,25 +14,31 @@ def test_login_from_main_page():
     Ожидаемый результат: 
     - URL содержит '/login'
     """
-    driver = webdriver.Chrome()
-    
     try:
         driver.get("https://stellarburgers.nomoreparties.site")
-        time.sleep(2)
         
-        # Находим кнопку "Войти в аккаунт" и кликаем
-        login_button = driver.find_element(By.XPATH, "//button[text()='Войти в аккаунт']")
+        # Ожидаем загрузки главной страницы
+        WebDriverWait(driver, 10).until(
+            EC.url_to_be("https://stellarburgers.nomoreparties.site/")
+        )
+        
+        # Нажимаем кнопку "Войти в аккаунт"
+        login_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[text()='Войти в аккаунт']"))
+        )
         login_button.click()
-        time.sleep(2)
         
-        # Проверяем что перешли на страницу логина
-        current_url = driver.current_url
-        assert "/login" in current_url
+        # Проверяем переход на страницу логина
+        WebDriverWait(driver, 10).until(
+            EC.url_contains("/login")
+        )
         
+        assert "/login" in driver.current_url
         print("Тест пройден: переход на страницу логина работает")
         
-    finally:
-        driver.quit()
+    except Exception as e:
+        driver.save_screenshot("main_page_login_error.png")
+        raise e
 
-if __name__ == "__main__":
-    test_login_from_main_page()
+# Команда для запуска теста:
+# python -m pytest tests/test_login.py::test_login_from_main_page -v

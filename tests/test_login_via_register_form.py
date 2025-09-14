@@ -1,8 +1,9 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import pytest
 
-def test_login_via_register_form():
+def test_login_via_register_form(driver):
     """Тест проверяет переход на страницу логина со страницы регистрации.
     
     Шаги:
@@ -13,24 +14,31 @@ def test_login_via_register_form():
     Ожидаемый результат:
     - URL содержит '/login'
     """
-    driver = webdriver.Chrome()
-    
     try:
         driver.get("https://stellarburgers.nomoreparties.site/register")
-        time.sleep(2)
+        
+        # Ожидаем загрузки страницы регистрации
+        WebDriverWait(driver, 10).until(
+            EC.url_contains("/register")
+        )
         
         # Нажимаем ссылку "Войти"
-        login_link = driver.find_element(By.XPATH, "//a[text()='Войти']")
+        login_link = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[text()='Войти']"))
+        )
         login_link.click()
-        time.sleep(2)
         
         # Проверяем переход на страницу логина
-        assert "/login" in driver.current_url
+        WebDriverWait(driver, 10).until(
+            EC.url_contains("/login")
+        )
         
+        assert "/login" in driver.current_url
         print("Тест пройден: переход на логин со страницы регистрации работает")
         
-    finally:
-        driver.quit()
+    except Exception as e:
+        driver.save_screenshot("register_form_error.png")
+        raise e
 
-if __name__ == "__main__":
-    test_login_via_register_form()
+# Команда для запуска теста:
+# python -m pytest tests/test_login_via_register_form.py::test_login_via_register_form -v

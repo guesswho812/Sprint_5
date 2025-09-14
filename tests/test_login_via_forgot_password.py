@@ -1,8 +1,9 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import pytest
 
-def test_login_via_forgot_password():
+def test_login_via_forgot_password(driver):
     """Тест проверяет переход на страницу логина со страницы восстановления пароля.
     
     Шаги:
@@ -13,24 +14,31 @@ def test_login_via_forgot_password():
     Ожидаемый результат:
     - URL содержит '/login'
     """
-    driver = webdriver.Chrome()
-    
     try:
         driver.get("https://stellarburgers.nomoreparties.site/forgot-password")
-        time.sleep(2)
+        
+        # Ожидаем загрузки страницы восстановления пароля
+        WebDriverWait(driver, 10).until(
+            EC.url_contains("/forgot-password")
+        )
         
         # Нажимаем ссылку "Войти"
-        login_link = driver.find_element(By.XPATH, "//a[text()='Войти']")
+        login_link = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[text()='Войти']"))
+        )
         login_link.click()
-        time.sleep(2)
         
         # Проверяем переход на страницу логина
-        assert "/login" in driver.current_url
+        WebDriverWait(driver, 10).until(
+            EC.url_contains("/login")
+        )
         
+        assert "/login" in driver.current_url
         print("Тест пройден: переход на логин со страницы восстановления пароля работает")
         
-    finally:
-        driver.quit()
+    except Exception as e:
+        driver.save_screenshot("forgot_password_error.png")
+        raise e
 
-if __name__ == "__main__":
-    test_login_via_forgot_password()
+# Команда для запуска теста:
+# python -m pytest tests/test_login_via_forgot_password.py::test_login_via_forgot_password -v

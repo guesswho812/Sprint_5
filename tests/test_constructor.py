@@ -1,8 +1,9 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import pytest
 
-def test_constructor_sections():
+def test_constructor_sections(driver):
     """Тест проверяет переключение между разделами конструктора: 'Булки', 'Соусы', 'Начинки'.
     
     Шаги:
@@ -15,11 +16,13 @@ def test_constructor_sections():
     - При клике на вкладку она становится активной
     - Отображается соответствующий раздел с ингредиентами
     """
-    driver = webdriver.Chrome()
-    
     try:
         driver.get("https://stellarburgers.nomoreparties.site")
-        time.sleep(2)
+        
+        # Ожидаем загрузки вкладок
+        WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.XPATH, "//span[text()='Булки']/.."))
+        )
         
         # Находим все вкладки
         buns_tab = driver.find_element(By.XPATH, "//span[text()='Булки']/..")
@@ -28,32 +31,39 @@ def test_constructor_sections():
         
         # Кликаем на "Соусы"
         sauces_tab.click()
-        time.sleep(1)
         
-        # Проверяем активную вкладку
+        # Проверяем активную вкладку "Соусы"
+        WebDriverWait(driver, 10).until(
+            EC.text_to_be_present_in_element((By.XPATH, "//div[contains(@class, 'tab_tab_type_current')]"), "Соусы")
+        )
         active_tab = driver.find_element(By.XPATH, "//div[contains(@class, 'tab_tab_type_current')]")
         assert "Соусы" in active_tab.text
         
         # Кликаем на "Начинки"
         fillings_tab.click()
-        time.sleep(1)
         
-        # Проверяем активную вкладку
+        # Проверяем активную вкладку "Начинки"
+        WebDriverWait(driver, 10).until(
+            EC.text_to_be_present_in_element((By.XPATH, "//div[contains(@class, 'tab_tab_type_current')]"), "Начинки")
+        )
         active_tab = driver.find_element(By.XPATH, "//div[contains(@class, 'tab_tab_type_current')]")
         assert "Начинки" in active_tab.text
         
         # Кликаем на "Булки"
         buns_tab.click()
-        time.sleep(1)
         
-        # Проверяем активную вкладку
+        # Проверяем активную вкладку "Булки"
+        WebDriverWait(driver, 10).until(
+            EC.text_to_be_present_in_element((By.XPATH, "//div[contains(@class, 'tab_tab_type_current')]"), "Булки")
+        )
         active_tab = driver.find_element(By.XPATH, "//div[contains(@class, 'tab_tab_type_current')]")
         assert "Булки" in active_tab.text
         
         print("Тест пройден: переключение между разделами конструктора работает")
         
-    finally:
-        driver.quit()
+    except Exception as e:
+        driver.save_screenshot("constructor_error.png")
+        raise e
 
-if __name__ == "__main__":
-    test_constructor_sections()
+# Команда для запуска теста:
+# python -m pytest tests/test_constructor.py::test_constructor_sections -v
